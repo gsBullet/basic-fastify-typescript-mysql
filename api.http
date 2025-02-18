@@ -1,0 +1,34 @@
+@hostname = http://127.0.0.1:5000/api/v1/users
+
+
+# get user
+###
+GET {{hostname}}/all
+
+
+
+
+# create a new user
+###
+
+POST {{hostname}}/store
+Content-Type: application/json
+
+{
+    "user_id": 2,
+    "name": "hasem",
+    "email": "hasemsm@example.com",
+    "password": "12345678"
+}
+
+# update
+
+POST {{hostname}}/update/41
+Content-Type: application/json
+
+{
+    "user_id": 2,
+    "name": "hasem",
+    "email": "hasemkhan@example.com",
+    "password": "12345678"
+}
