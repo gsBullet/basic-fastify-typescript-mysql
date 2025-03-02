@@ -3,7 +3,7 @@ import cors from "@fastify/cors";
 import sequelize from "./db/db";
 import dotenv from "dotenv";
 import userRouter from "./router/userRouter";
-
+import multipart from "@fastify/multipart";
 // Load environment variables
 dotenv.config();
 
@@ -11,11 +11,24 @@ const port = process.env.SERVER_PORT ? parseInt(process.env.SERVER_PORT) : 3000;
 const host = process.env.SERVER_HOST || "0.0.0.0";
 const protocol = process.env.SERVER_PROTOCOL || "http";
 
-const app = Fastify({ logger: true });
+const fastify = Fastify({
+  logger: true,
+});
+// CommonJs
+const app = require("fastify")({
+  logger: true,
+});
 
 app.register(cors);
 
-app.get("/", async (request, reply) => {
+app.register(require("@fastify/multipart"), {
+  attachFieldsToBody: true, // Use 'true' instead of 'keyValues'
+  onFile, // Custom handler for file processing
+  limits: {
+    fileSize: 6000000 * 10, // Limit file size to 60 MB
+  },
+});
+app.get("/", async (request: any, reply: any) => {
   return { message: "Hello, Fastify with TypeScript!" };
 });
 
@@ -36,3 +49,15 @@ const startServer = async () => {
 };
 
 startServer();
+
+async function onFile(part: any) {
+  if (part.type == "file" && part.filename) {
+    const buff = await part.toBuffer();
+    part.value = {
+      data: await Buffer.from(buff, "base64"),
+      name: part.filename,
+      ext: "." + part.filename.split(".")[1],
+    };
+  }
+  return part;
+}

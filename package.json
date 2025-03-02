@@ -11,6 +11,8 @@
     "server": "nodemon src/index.ts"
   },
   "dependencies": {
+    "@fastify/formbody": "^8.0.2",
+    "@fastify/multipart": "^9.0.3",
     "@fastify/mysql": "^5.0.2",
     "dotenv": "^16.4.7",
     "env": "^0.0.2",

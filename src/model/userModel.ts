@@ -18,6 +18,7 @@ class DataModel extends Model<
   declare name?: string;
   declare email?: string;
   declare password?: string;
+  declare image?: string;
 }
 
 DataModel.init(
@@ -41,6 +42,10 @@ DataModel.init(
       unique: true,
     },
     password: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    image: {
       type: DataTypes.STRING,
       allowNull: true,
     },
