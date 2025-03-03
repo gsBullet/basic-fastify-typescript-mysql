@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import controller from "../controller/userController";
+import controller from "../../controller/userController";
 
-const userRouter = async (fastify: FastifyInstance) => {
+const userRoutes = async (fastify: FastifyInstance) => {
   let prefix = "/users";
   const controllerInstance = controller(fastify);
 
@@ -14,4 +14,4 @@ const userRouter = async (fastify: FastifyInstance) => {
 
 };
 
-export default userRouter;
+export default userRoutes;

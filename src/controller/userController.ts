@@ -26,32 +26,29 @@ export default function (fastify: FastifyInstance) {
         email: String(email.value),
         password: String(hashedPassword),
       };
-      console.log(data);
-      // return res
-      //   .status(200)
-      //   .send({ data, message: "user created successfully" });
 
       if (!image) {
         return res.status(400).send({ error: "No file uploaded" });
       }
 
-      // Create uploads directory if it doesn't exist
-      const uploadDir = path.join(__dirname, "../uploads");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      // Handle file upload
-      let imagePath = "";
-      if (image?.file) {
-        const filename = `${Date.now()}-${image.filename}`;
-        imagePath = path.join(uploadDir, filename);
-        await fs.promises.writeFile(imagePath, await image.toBuffer());
-      }
-      const relativePath = imagePath.split("/fastify/")[1];
-
       try {
         const user = await DataModel.create(data);
+
+        // Create uploads directory if it doesn't exist
+        const uploadDir = path.join(__dirname, "../uploads");
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        // Handle file upload
+        let imagePath = "";
+        if (image?.file) {
+          const filename = `${Date.now()}-${image.filename}`;
+          imagePath = path.join(uploadDir, filename);
+          await fs.promises.writeFile(imagePath, await image.toBuffer());
+        }
+        const relativePath = imagePath.split("/fastify/")[1];
+
         user.image = relativePath;
         await user.save();
         // image: relativePath,
@@ -80,14 +77,52 @@ export default function (fastify: FastifyInstance) {
     update: async function (req: FastifyRequest, res: FastifyReply) {
       try {
         const { id } = req.params as any;
-        const { name, email, password, user_id } = req.body as any;
+        const { name, email, password, user_id, image } = req.body as any;
 
-        const user = await DataModel.findByPk(id);
-        if (!user) return res.status(404).send({ error: "User not found" });
-        // console.log(req.body);
+        // Create uploads directory if it doesn't exist
+        const uploadDir = path.join(__dirname, "../uploads");
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
 
-        await user.update({ name, email, password, user_id });
-        return res.status(200).send(user);
+        // Handle file upload
+        let imagePath = "";
+        if (image?.file) {
+          const filename = `${Date.now()}-${image.filename}`;
+          imagePath = path.join(uploadDir, filename);
+          await fs.promises.writeFile(imagePath, await image.toBuffer());
+        }
+        const relativePath = imagePath.split("/fastify/")[1];
+
+        // **Hash the password using bcrypt**
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password.value, saltRounds);
+
+        let data = {
+          user_id: Number(user_id.value),
+          name: String(name.value),
+          email: String(email.value),
+          password: String(hashedPassword),
+          image: String(relativePath),
+        };
+
+        try {
+          const user = await DataModel.update({ ...data }, { where: { id } });
+
+          // image: relativePath,
+          if (user) {
+            return res.status(200).send({
+              user,
+              message: "user updated successfully",
+            });
+          } else {
+            return res.status(400).send({
+              message: "user not updated successfully",
+            });
+          }
+        } catch (error) {
+          return res.status(500).send({ error });
+        }
       } catch (error) {
         return res.code(500).send({ error: "Error updating user" });
       }

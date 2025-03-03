@@ -2,8 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import sequelize from "./db/db";
 import dotenv from "dotenv";
-import userRouter from "./router/userRouter";
-import multipart from "@fastify/multipart";
+import allRoutes from "./router/allRoutes";
 // Load environment variables
 dotenv.config();
 
@@ -28,11 +27,15 @@ app.register(require("@fastify/multipart"), {
     fileSize: 6000000 * 10, // Limit file size to 60 MB
   },
 });
+
+app.register(require("@fastify/jwt"), {
+  secret: "5a0d6f05-c127-466e-aea0-f248f0e4af69",
+});
 app.get("/", async (request: any, reply: any) => {
   return { message: "Hello, Fastify with TypeScript!" };
 });
 
-app.register(userRouter, { prefix: "/api/v1/" });
+app.register(allRoutes, { prefix: "/api/v1/" });
 
 // Sync database before starting the server
 const startServer = async () => {
