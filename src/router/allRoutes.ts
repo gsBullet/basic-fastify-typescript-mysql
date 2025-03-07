@@ -3,6 +3,6 @@ import userRoutes from "./routes/userRoutes";
 import { FastifyInstance } from "fastify";
 
 export default async function allRoutes(fastify: FastifyInstance) {
-  fastify.register(userRoutes);
   fastify.register(authRoutes);
+  fastify.register(userRoutes);
 }

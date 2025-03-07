@@ -8,7 +8,7 @@ const userRoutes = async (fastify: FastifyInstance) => {
   fastify
     .get(`${prefix}/all`, controllerInstance.all)
     .get(`${prefix}/find/:id`, controllerInstance.details)
-    .post(`${prefix}/store`, controllerInstance.store)
+   
     .post(`${prefix}/update/:id`, controllerInstance.update)
     .get(`${prefix}/delete/:id`, controllerInstance.delete);
 
