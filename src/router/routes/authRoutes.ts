@@ -8,16 +8,14 @@ const authRoutes = async (fastify: FastifyInstance) => {
 
   // Public routes
   fastify
-    .post(`${prefix}/singup`, controllerInstance.signup)
+    .post(`${prefix}/register`, controllerInstance.signup)
     .post(`${prefix}/login`, controllerInstance.login)
 
-    // Register auth middleware plugin
-    // .register(authMiddleware)
+ 
 
     // These routes will now be protected
-    .get(`${prefix}/check-auth`, controllerInstance.checkAuth)
-
-    .get(`${prefix}/logout`, controllerInstance.logout);
+    .get(`${prefix}/check-auth`, { preHandler: [authMiddleware] }, controllerInstance.checkAuth)
+    .get(`${prefix}/logout`, { preHandler: [authMiddleware] }, controllerInstance.logout);
 };
 
 export default authRoutes;

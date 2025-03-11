@@ -1,12 +1,20 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import DataModel from "../model/userModel";
 import bcrypt from "bcrypt";
-import jwt from "@fastify/jwt";
-import moment from "moment/moment";
+
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
+const jwt = require("jsonwebtoken");
 
-import { FastifyPluginAsync } from 'fastify';
+dotenv.config();
+
+
+declare module "fastify" {
+  interface FastifyRequest {
+    userData?: any;
+  }
+}
 
 export default function (fastify: FastifyInstance) {
   return {
@@ -95,13 +103,14 @@ export default function (fastify: FastifyInstance) {
       };
 
       // Sign token with secret and expiration
-      const token = fastify.jwt.sign(
+      const token = await jwt.sign(
         {
           id: user.id,
           user_id: user.user_id,
           email: user.email,
           image: user.image,
         },
+        process.env.JWT_SECRET,
         {
           expiresIn: "720h",
         }
@@ -114,32 +123,18 @@ export default function (fastify: FastifyInstance) {
     },
 
     checkAuth: async (req: FastifyRequest, res: FastifyReply) => {
-      try {
-        const authHeader = req.headers.authorization;
-        console.log("Authorization header:", authHeader); // Debug log
-  
-        if (!authHeader || !authHeader.startsWith("todoToken ")) { // Match frontend prefix
-          console.log("Missing or invalid authorization header");
-          return res.status(401).send({ error: "Unauthorized" });
-        }
-  
-        const token = authHeader.split(" ")[1];
-        if (!token) {
-          console.log("Token missing");
-          return res.status(401).send({ error: "Unauthorized" });
-        }
-  
-        // Verify token
-        const decoded = await fastify.jwt.verify(token);
-        req.user = decoded;
+     const {id, user_id} = req.userData;
+     const user = await DataModel.findByPk(id, {
+      attributes: { exclude: ["password"] }, // Exclude password field
+    });
+     if (!user) {
+       return res.status(401).send({ error: "User Not Found" });
+     }
+     if (user.user_id!== user_id) {
+       return res.status(401).send({ error: "User ID Mismatch" });
+     }
+     return res.status(200).send({ userInfo: user });
 
-        
-        console.log("Authenticated user:", decoded); // Debug log
-        return res.status(200).send({ userInfo: decoded }); // Optional: Send basic user data
-      } catch (error) {
-        console.log("Authentication error:", error);
-        return res.status(401).send({ error: "Invalid token" });
-      }
     },
     logout: async (req: FastifyRequest, res: FastifyReply) => {
       // Register logic here
